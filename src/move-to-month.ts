@@ -13,26 +13,28 @@ export async function moveToMonth(sftp: sftp, source: string) {
     if (file.type !== "-") {
       continue;
     }
+    await moveOneFile(sftp, source, root, file);
   }
 }
 
-async function moveOneFiles(sftp: sftp, file: SftpFile) {
+async function moveOneFile(sftp: sftp, source: string, root: SftpFile[], file: SftpFile) {
   try {
     const match = file.name.match(/(20\d\d)(\d\d)(\d\d)/); // YMD
     if (!match) {
       return;
     }
-    await moveOneFile(sftp, file);
-  const yearMonth = match[1] + "-" + match[2];
-  const finalDestination = join(join(source, yearMonth), file.name);
-  console.log(finalDestination);
-  if (!root.map((x) => x.name).includes(yearMonth)) {
-    const dir = dirname(finalDestination);
-    console.log("mkdir", dir);
-    await sftp.mkdir(dir);
-    root.push({name: yearMonth} as SftpFile);
+
+    const yearMonth = match[1] + "-" + match[2];
+    const finalDestination = join(join(source, yearMonth), file.name);
+    console.log(finalDestination);
+    if (!root.map((x) => x.name).includes(yearMonth)) {
+      const dir = dirname(finalDestination);
+      console.log("mkdir", dir);
+      await sftp.mkdir(dir);
+      root.push({ name: yearMonth } as SftpFile);
+    }
+    await sftp.rename(join(source, file.name), finalDestination);
+  } catch (e) {
+    console.error(e);
   }
-  await sftp.posixRename(join(source, file.name), finalDestination);
-} catch (e) {
-  console.error(e);
 }
