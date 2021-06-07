@@ -4,7 +4,7 @@ Before: thousands of photo files in /DCIM/Camera that are very hard to work with
 
 After:
 
-![screenshot](docs/2021-06-06 21_52_15-Clipboard.png)
+![screenshot](docs/2021-06-06_21_52_15-Clipboard.png)
 
 ## Usage:
 
