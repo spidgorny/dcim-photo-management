@@ -10,10 +10,18 @@ async function main() {
   try {
     let client = new Client();
     for (let server of config) {
+      if (!server.enable) {
+        continue;
+      }
       console.log("connecting", server.sftp.host);
       await client.connect(server.sftp);
       await moveToMonth(client, server.source);
-      await compare(client, server.source, server.destination.address, server.destination.paths);
+      await compare(
+        client,
+        server.source,
+        server.destination.address,
+        server.destination.paths
+      );
       await processQueue();
       await client.end();
     }

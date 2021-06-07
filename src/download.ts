@@ -4,6 +4,7 @@ import { QueueEntry, SftpFile } from "./interfaces";
 import prettyBytes from "pretty-bytes";
 import sftp from "ssh2-sftp-client";
 import { join } from "./helper";
+const cliProgress = require("cli-progress");
 
 const queue = [] as QueueEntry[];
 
@@ -14,9 +15,11 @@ export async function compare(
   byYear: { [key: number]: string }
 ) {
   let root = (await sftp.list(source)) as SftpFile[];
-  console.log(root.map((x) => x.name));
-
+  // console.log(root.map((x) => x.name));
   root = root.filter((x) => x.name.match(/\d{4}-\d{2}/));
+
+  // compare different folders in parallel
+  const promises = [];
   for (let yearMonth of root) {
     const year = yearMonth.name.split("-")[0];
     console.log("== ", yearMonth.name, year);
@@ -28,8 +31,16 @@ export async function compare(
     if (!fs.existsSync(finalDestination)) {
       fs.mkdirSync(finalDestination);
     }
-    await compareOneMonth(sftp, join(source, yearMonth.name), finalDestination);
+    const promiseOneMonth = compareOneMonth(
+      sftp,
+      join(source, yearMonth.name),
+      finalDestination
+    );
+    promises.push(promiseOneMonth);
   }
+
+  console.log("await", promises.length, "compare promises");
+  await Promise.all(promises);
 }
 
 async function compareOneMonth(
@@ -39,10 +50,10 @@ async function compareOneMonth(
 ) {
   console.log("listing", source);
   let root = (await sftp.list(source)) as SftpFile[];
-  console.log(root.length);
+  console.log("Android Files", source, root.length);
 
   const smbFiles = await listShare(destination);
-  console.log(smbFiles.length);
+  console.log("Storage Files", source, smbFiles.length);
 
   const diff = root.filter((x) => {
     if (!smbFiles.includes(x.name)) {
@@ -52,7 +63,7 @@ async function compareOneMonth(
     return fs.statSync(path).size !== x.size;
   });
   const diffNames = diff.map((x) => x.name);
-  console.log({ diffNames });
+  // console.log({ diffNames });
   if (!diffNames.length) {
     console.warn("rm ", source);
   }
@@ -114,8 +125,20 @@ export async function processQueue() {
     for (let file of pack.files) {
       const source = join(pack.source, file.name);
       const destination = join(pack.destination, file.name);
-      console.log(i--, file.name);
-      await pack.sftp.fastGet(source, destination);
+      console.log(i--, prettyBytes(file.size), file.name);
+
+      const bar1 = new cliProgress.SingleBar(
+        {},
+        cliProgress.Presets.shades_classic
+      );
+      bar1.start(100, 0);
+      await pack.sftp.fastGet(source, destination, {
+        step: (totalTransferred: number, chunk: number, total: number) => {
+          // console.log(totalTransferred, chunk, total);
+          bar1.update(((totalTransferred / total) * 100).toFixed(2));
+        },
+      });
+      bar1.stop();
     }
   }
 }
