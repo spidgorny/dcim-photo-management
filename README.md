@@ -4,13 +4,13 @@ Before: thousands of photo files in /DCIM/Camera that are very hard to work with
 
 After:
 
-![](docs/2021-06-06 21_52_15-Clipboard.png)
+![screenshot](docs/2021-06-06 21_52_15-Clipboard.png)
 
 ## Usage:
 
 1. Install SFTP server on Android phone(s). I use [this](https://play.google.com/store/apps/details?id=net.xnano.android.sshserver).
 
-2. Configure one or more Android phones IP addresses and the folder for backups in the config.ts file. You may need to put some passwords into .env file or just type them as is.
+2. Configure one or more Android phone's IP addresses and the folder for backups in the config.ts file. You may need to put some passwords into .env file or just type them as is.
 
 > npm run main
 
