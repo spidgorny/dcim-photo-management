@@ -69,7 +69,7 @@ async function compareOneMonth(
   }
 
   const sourceSize = root.reduce((a: number, x: SftpFile) => a + x.size, 0);
-  await copyFiles(
+  copyFiles(
     sftp,
     source,
     destination,
@@ -80,7 +80,7 @@ async function compareOneMonth(
   );
 }
 
-async function copyFiles(
+function copyFiles(
   sftp: sftp,
   source: string,
   destination: string,
@@ -131,11 +131,12 @@ export async function processQueue() {
         {},
         cliProgress.Presets.shades_classic
       );
-      bar1.start(100, 0);
+      bar1.start(file.size, 0);
       await pack.sftp.fastGet(source, destination, {
         step: (totalTransferred: number, chunk: number, total: number) => {
           // console.log(totalTransferred, chunk, total);
-          bar1.update(((totalTransferred / total) * 100).toFixed(2));
+          // bar1.update(Math.round((totalTransferred / total) * 100));
+          bar1.update(totalTransferred, total);
         },
       });
       bar1.stop();

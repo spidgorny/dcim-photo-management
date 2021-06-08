@@ -7,8 +7,8 @@ let Client = require("ssh2-sftp-client");
 // let networkDrive = require('windows-network-drive');
 
 async function main() {
+  let client = new Client();
   try {
-    let client = new Client();
     for (let server of config) {
       if (!server.enable) {
         continue;
@@ -23,10 +23,11 @@ async function main() {
         server.destination.paths
       );
       await processQueue();
-      await client.end();
     }
   } catch (err) {
     console.error(err);
+  } finally {
+    await client.end();
   }
 }
 

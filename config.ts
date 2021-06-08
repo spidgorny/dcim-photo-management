@@ -28,7 +28,7 @@ export const config = [
   {
     enable: true,
     sftp: {
-      host: "192.168.1.18",
+      host: "192.168.1.123",
       port: "2222",
       username: "slawa",
       password: process.env.ONEPLUS5T_PASSWORD,
